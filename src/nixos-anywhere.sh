@@ -67,6 +67,7 @@ mkdir -p "$tempDir"
 declare -A diskEncryptionKeys=()
 declare -A extraFilesOwnership=()
 declare -a nixCopyOptions=()
+declare -a userSSHArgs=()
 declare -a sshArgs=("-o" "IdentitiesOnly=yes" "-i" "$tempDir/nixos-anywhere" "-o" "UserKnownHostsFile=/dev/null" "-o" "StrictHostKeyChecking=no")
 
 breakpoint() {
@@ -134,7 +135,7 @@ Options:
 * -p, --ssh-port <ssh_port>
   set the ssh port to connect with
 * --ssh-option <ssh_option>
-  set one ssh option, no need for the '-o' flag, can be repeated.
+  prepend one ssh option, no need for the '-o' flag, can be repeated.
   for example: '--ssh-option UserKnownHostsFile=./known_hosts'
 * -L, --print-build-logs
   print full build logs
@@ -238,7 +239,7 @@ parseArgs() {
       shift
       ;;
     --ssh-option)
-      sshArgs+=("-o" "$2")
+      userSSHArgs+=("-o" "$2")
       shift
       ;;
     -L | --print-build-logs)
@@ -936,6 +937,7 @@ SSH
 
 main() {
   parseArgs "$@"
+  sshArgs=("${userSSHArgs[@]}" "${sshArgs[@]}")
 
   if [[ ${vmTest} == y ]]; then
     if [[ ${hardwareConfigBackend} != "none" ]]; then
